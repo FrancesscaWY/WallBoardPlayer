@@ -1,0 +1,21 @@
+:root { font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif; }
+html, body, #app { height: 100%; margin: 0; }
+/* 大屏审美：渐变背景 + 轻微网格 */
+body {
+  background: radial-gradient(1200px 600px at 10% 0%, rgb(255, 255, 255), transparent 60%),
+  radial-gradient(1000px 500px at 90% 0%, rgb(121, 157, 214), transparent 60%),
+  linear-gradient(180deg, #006aec 0%, #799dd6 100%);
+}
+.grid-overlay {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px; pointer-events: none;
+}
+/* iframe 平滑淡入 */
+.fade-slide-enter-active, .fade-slide-leave-active { transition: all .6s ease; }
+.fade-slide-enter-from { opacity: 0; transform: translateX(20px) scale(0.995); }
+.fade-slide-leave-to { opacity: 0; transform: translateX(-20px) scale(0.995); }
+
+/* 让 iframe 真正全屏无边距 */
+.iframe-reset { border: none; width: 100%; height: 100%; background: transparent; }
