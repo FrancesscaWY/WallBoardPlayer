@@ -76,6 +76,7 @@ watch(enabledPanels, (list) => {
   playKey.value++
   schedule()
 })
+
 </script>
 
 <style scoped>

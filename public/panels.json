@@ -1,0 +1,10 @@
+{
+  "panels": [
+    { "id": "1", "title": "数说西大", "url": "/panels/panel1.html", "durationMs": 3000, "enabled": true },
+    { "id": "2", "title": "安防监控", "url": "/panels/panel2.html", "durationMs": 3000, "enabled": true },
+    { "id": "3", "title": "一卡通监控", "url": "/panels/panel3.html", "durationMs": 3000, "enabled": true },
+    { "id": "4", "title": "迎新数据展示", "url": "/panels/panel4.html", "durationMs": 3000, "enabled": true },
+    { "id": "5", "title": "直录播教室监控", "url": "/panels/panel5.html", "durationMs": 3000, "enabled": true },
+    { "id": "6", "title": "门禁出入情况统计", "url": "/panels/panel6.html", "durationMs": 3000, "enabled": true }
+  ]
+}

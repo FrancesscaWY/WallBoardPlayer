@@ -11,7 +11,7 @@
         v-for="(p, idx) in panels"
         :key="p.id"
         :value="idx"
-        class="tab-item"
+        class="tab-item "
         @click="go({ name:'player', query:{ index: idx } })"
     >
       {{ p.title }}

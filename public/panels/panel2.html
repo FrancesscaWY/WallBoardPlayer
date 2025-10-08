@@ -4,11 +4,23 @@
   <meta charset="UTF-8">
   <title>安防监控</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin: 0; padding: 0; background: #e8f0fe; }
-    h1 { margin-top: 50px; color: #1f2937; font-size: 48px; }
+    //body { font-family: sans-serif; text-align: center; margin: 0; padding: 0; background: #e8f0fe; }
+    //h1 { margin-top: 50px; color: #1f2937; font-size: 48px; }
   </style>
 </head>
-<body>
-<h1>安防监控</h1>
+<body class="panel2-bg">
 </body>
 </html>
+<style>
+    .panel2-bg {
+        background-image: url('/imgs/panel2.png');
+        background-repeat: no-repeat;
+        background-position: center top;
+        background-size: 100% 100%; /* ✅ 宽高都拉伸到铺满容器 */
+        background-attachment: fixed; /* 固定背景（可选） */
+
+        width: 100vw;
+        height: 100vh; /* 全屏 */
+        overflow: hidden;
+    }
+</style>
