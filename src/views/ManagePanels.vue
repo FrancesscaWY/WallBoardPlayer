@@ -74,10 +74,11 @@
 
               <td>
                 <v-switch
-                    v-model="p.enabled"
-                    inset
-                    hide-details
-                    :color="p.enabled ? 'success' : 'grey'"
+                    :model-value="p.enabled"
+                    @update:model-value="(val) => onToggleEnabled(i, val)"
+                inset
+                hide-details
+                :color="p.enabled ? 'success' : 'grey'"
                 />
               </td>
 
@@ -152,14 +153,6 @@ function submit(){
 
 const draggingIndex = ref<number | null>(null)
 
-// function onKey(e: KeyboardEvent){
-//   if(draggingIndex==null) return
-//   if(e.key === 'ArrowUp' && draggingIndex>0){ store.reorder(draggingIndex, draggingIndex-1); draggingIndex-- }
-//   if(e.key === 'ArrowDown' && draggingIndex < panels.value.length-1){ store.reorder(draggingIndex, draggingIndex+1); draggingIndex++ }
-//   if(e.key === 'Escape' || e.key === 'Enter'){ stopDrag() }
-// }
-// function stopDrag(){ draggingIndex = null; window.removeEventListener('keydown', onKey) }
-
 
 /** 每行编辑状态（只有点了“编辑”才允许保存） */
 const editing = ref<boolean[]>([])
@@ -182,12 +175,7 @@ const snackbar = reactive({
   color: 'success' as 'success' | 'error' | 'info'
 })
 
-// /** 拖动排序起点（占位，按你的实现去完成） */
-// function startDrag(index: number) {
-//   // TODO: 在此对接你的拖拽排序逻辑（如 pointer + 计算、或使用 vuedraggable）
-//   // 拖拽完成后，直接修改 store.panels 的顺序即可（Pinia 允许直接改 state）
-//   console.log('start drag', index)
-// }
+
 
 /** 预览当前行 */
 function preview(index: number) {
@@ -220,10 +208,7 @@ function validateRow(index: number): string {
  *  若你需要持久化到后端，请在此处调用 API 并根据结果设置 snackbar
  */
 async function save(index: number) {
-  // 没有处于编辑态就不保存
   if (!editing.value[index]) return
-
-  // 本地校验
   const err = validateRow(index)
   if (err) {
     snackbar.text = err
@@ -231,19 +216,15 @@ async function save(index: number) {
     snackbar.show = true
     return
   }
-
   try {
+    await store.persistAll() // <- 关键：写入 OPFS + 本地缓存
     const p = panels.value[index]
-    // ===== 在这里对接你的 API =====
-    // await api.updatePanel(p.id, { title: p.title, url: p.url, durationMs: p.durationMs, enabled: p.enabled })
-    // =================================
-    // 若无后端，Pinia 已是单一数据源，视为保存成功
-    snackbar.text = `「${p?.title}」保存成功`
+    snackbar.text = `「${p?.title}」已保存`
     snackbar.color = 'success'
     snackbar.show = true
     editing.value[index] = false
-  } catch (e) {
-    snackbar.text = '保存失败，请重试'
+  } catch (e: any) {
+    snackbar.text = `保存失败：${e?.message ?? e}`
     snackbar.color = 'error'
     snackbar.show = true
   }
@@ -252,15 +233,8 @@ async function save(index: number) {
 /** 删除行：直接修改 Pinia 的 state */
 function remove(id: string) {
   if (!id) return
-  const idx = panels.value.findIndex(p => p.id === id)
-  if (idx === -1) return
-  const removed = panels.value[idx]
-  // 从 store 中删除
-  store.panels.splice(idx, 1)
-  // 同步编辑状态数组
-  editing.value.splice(idx, 1)
-
-  snackbar.text = removed?.title ? `已删除「${removed.title}」` : '已删除'
+  store.removePanel(id)   // ✅ 交给 store，里面会统一持久化
+  snackbar.text = '已删除'
   snackbar.color = 'info'
   snackbar.show = true
 }
@@ -283,61 +257,21 @@ onBeforeUnmount(() => {
   document.body.style.cursor = ''
 })
 
-// 首次载入：从 JSON（或 localStorage）同步
-onMounted(() => {
-  if (!store.loaded) store.loadFromJson().catch(console.error)
+// ✅ 首次加载：优先 OPFS → localStorage → 内置 panels.json
+onMounted(async () => {
+  if (!store.loaded) {
+    try {
+      await store.load()
+      console.log('✅ panels 加载完成')
+    } catch (err) {
+      console.error('加载 panels 失败:', err)
+    }
+  }
 })
-
 /** —— 整行拖拽换位 —— **/
 // let lastHoverIndex: number | null = null
 let onMM: ((e: MouseEvent) => void) | null = null
 let onMU: ((e: MouseEvent) => void) | null = null
-// function indexFromClientY(clientY: number): number {
-//   const rows = rowRefs.value
-//   let target = 0
-//   let min = Infinity
-//   for (let i = 0; i < rows.length; i++) {
-//     const el = rows[i]
-//     if (!el) continue
-//     const rect = el.getBoundingClientRect()
-//     const mid = rect.top + rect.height / 2
-//     const d = Math.abs(clientY - mid)
-//     if (d < min) { min = d; target = i }
-//   }
-//   return target
-// }
-
-/** ✅ 整行拖拽：把 from 插到 hover 位置；transition-group 负责位移动画 */
-// function startDrag(index: number, ev: MouseEvent) {
-//   draggingIndex = index
-//   lastHoverIndex = index
-//
-//   document.body.style.userSelect = 'none'
-//   document.body.style.cursor = 'grabbing'
-//
-//   onMM = (e: MouseEvent) => {
-//     if (draggingIndex === null) return
-//     const hover = indexFromClientY(e.clientY)
-//     if (hover !== lastHoverIndex && hover >= 0 && hover < panels.value.length) {
-//       store.reorder(draggingIndex, hover)
-//       lastHoverIndex = hover
-//       draggingIndex = hover
-//     }
-//   }
-//
-//   onMU = () => {
-//     draggingIndex = null
-//     lastHoverIndex = null
-//     if (onMM) window.removeEventListener('mousemove', onMM)
-//     if (onMU) window.removeEventListener('mouseup', onMU)
-//     onMM = onMU = null
-//     document.body.style.userSelect = ''
-//     document.body.style.cursor = ''
-//   }
-//
-//   window.addEventListener('mousemove', onMM!)
-//   window.addEventListener('mouseup', onMU!)
-// }
 
 onBeforeUnmount(() => {
   if (onMM) window.removeEventListener('mousemove', onMM)
@@ -428,13 +362,47 @@ onBeforeUnmount(() => {
   document.body.style.userSelect = ''
   document.body.style.cursor = ''
 })
-function resetPanels() {
-  localStorage.removeItem('swu_panels_json')
-  store.panels = []   // 清空内存
-  store.loaded = false
-  // 重新加载默认 JSON
-  store.loadFromJson('/panels.json')
+/** ✅ 重置面板：
+ * 1. 清空 OPFS + localStorage 缓存
+ * 2. 从打包内置的 panels.json 恢复默认
+ * 3. 自动写入 OPFS 和 localStorage
+ */
+async function resetPanels() {
+  try {
+    localStorage.removeItem('swu_panels_cache_json')
+    if ((navigator as any).storage?.getDirectory) {
+      const root: any = await (navigator as any).storage.getDirectory()
+      try { await root.removeEntry('panels.json') } catch {}
+    }
+    store.panels = []
+    store.loaded = false
+    await store.load()   // 重新从“内置默认”导入，并初始化一份 OPFS
+  } catch (err) {
+    console.error('重置失败:', err)
+  }
 }
+// import { watch } from 'vue'
+let t: any = null
+watch(panels, () => {
+  clearTimeout(t)
+  t = setTimeout(() => store.persistAll(), 300)
+}, { deep: true })
+
+function onToggleEnabled(index: number, val: boolean) {
+  const p = panels.value[index]
+  if (!p) return
+  // 直接更新并持久化（store.updatePanel 内部已 persistAll）
+  store.updatePanel(p.id!, { enabled: val })
+
+  // 友好提示（可选）
+  snackbar.text = val ? `已启用「${p.title}」` : `已禁用「${p.title}」`
+  snackbar.color = val ? 'success' : 'info'
+  snackbar.show = true
+
+  // 通知播放器（可选，但建议）：让正在播放页立即刷新启用列表
+  window.dispatchEvent(new CustomEvent('panels-updated'))
+}
+
 </script>
 
 <style scoped>

@@ -52,16 +52,16 @@
                   rounded="xl"
                   elevation="16"
                   border
-                  class="overflow-hidden pa-0 mt-3"
                   variant="elevated"
                   @mouseenter="pause()"
                   @mouseleave="resume()"
+                  class="glass-card overflow-hidden pa-0 mt-3"
               >
 
                 <!-- 右上角时钟 -->
                 <v-chip
                     variant="tonal"
-                    color="primary"
+                    color="white"
                     class="time-chip"
                 >
                   {{ now }}
@@ -271,11 +271,17 @@ onBeforeUnmount(() => {
 })
 
 const store = usePanelStore()
-const { loaded } = storeToRefs(store)
+// const { loaded } = storeToRefs(store)
 
+// ✅ 首次加载：优先 OPFS → localStorage → 内置 panels.json
 onMounted(async () => {
-  if (!loaded.value) {
-    try { await store.loadFromJson('/panels.json') } catch (e) { console.error(e) }
+  if (!store.loaded) {
+    try {
+      await store.load()
+      console.log('✅ panels 加载完成')
+    } catch (err) {
+      console.error('加载 panels 失败:', err)
+    }
   }
 })
 
@@ -323,4 +329,68 @@ onMounted(async () => {
   position: relative;
   z-index: 1;
 }
+ .glass-card {
+   position: relative;
+   /* 多层半透明背景，叠加微光斑 */
+   background:
+       linear-gradient(135deg, var(--glass-bg-a), var(--glass-bg-b)),
+       radial-gradient(120% 100% at 0% 0%, rgba(255,255,255,0.18), transparent 60%);
+   /* 毛玻璃核心：模糊 + 饱和提升 */
+   backdrop-filter: blur(14px) saturate(140%);
+   -webkit-backdrop-filter: blur(14px) saturate(140%);
+   /* 细边框（已配合 v-card 的 border） */
+   border: 1px solid var(--glass-border);
+   /* 柔和阴影，配合 elevation 效果更立体 */
+   box-shadow:
+       0 10px 30px rgba(0,0,0,0.18),
+       inset 0 0 0 1px rgba(255,255,255,0.02);
+   transition: transform .18s ease, box-shadow .18s ease, background .18s ease;
+ }
+
+/* 顶部高光与微亮边，增强“玻璃厚度” */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--glass-highlight), transparent 40%);
+  mix-blend-mode: overlay;
+}
+
+/* 轻微内侧高光线，模拟玻璃边缘 */
+.glass-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  opacity: .9;
+}
+
+/* 悬浮微动与阴影加强 */
+.glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+      0 14px 40px rgba(0,0,0,0.24),
+      inset 0 0 0 1px rgba(255,255,255,0.03);
+}
+
+/* 无毛玻璃支持时的兜底（老浏览器） */
+@supports not ((backdrop-filter: blur(10px))) {
+  .glass-card {
+    background: var(--glass-bg-a);
+  }
+}
+
+/* 减弱透明度的可访问性兜底 */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-card {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    background: var(--glass-bg-a);
+  }
+}
+
 </style>

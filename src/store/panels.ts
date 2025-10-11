@@ -1,24 +1,30 @@
 // src/store/panels.ts
 import { defineStore } from 'pinia'
 import type { Panel } from '../types'
+import defaultPanelsJson from '../data/panels.json'
 
-type State = { panels: Panel[]; loaded: boolean }
-const LS_KEY = 'swu_panels_json'
+type State = {
+    panels: Panel[]
+    loaded: boolean
+}
+
+const LS_KEY = 'swu_panels_cache_json'
+const toJson = (panels: Panel[]) => JSON.stringify({ panels }, null, 2)
 
 export const usePanelStore = defineStore('panels', {
     state: (): State => ({
-        panels: [] as Panel[],
-        loaded: false
+        panels: [],
+        loaded: false,
     }),
 
     getters: {
-        enabledPanels: (s): Panel[] => s.panels.filter(p => p.enabled !== false),
+        enabledPanels: (s) => s.panels.filter(p => p.enabled !== false),
     },
 
     actions: {
-        /** 优先从 localStorage 读；否则从 /panels.json 读 */
-        async loadFromJson(url = '/panels.json'): Promise<void> {
-            // 1) localStorage 优先
+        /** 首次加载：优先 localStorage → 其次内置默认（打包） */
+        async load(): Promise<void> {
+            // 1) localStorage
             const cached = localStorage.getItem(LS_KEY)
             if (cached) {
                 try {
@@ -30,36 +36,28 @@ export const usePanelStore = defineStore('panels', {
                     }
                 } catch {}
             }
-            // 2) 远端 JSON
-            const res = await fetch(url, { cache: 'no-cache' })
-            if (!res.ok) throw new Error(`加载 ${url} 失败: ${res.status}`)
-            const data = await res.json()
-            if (!Array.isArray(data?.panels)) throw new Error('panels.json 结构错误')
-            this.panels = data.panels
-            this.loaded = true
+            // 2) 内置默认
+            if (Array.isArray((defaultPanelsJson as any)?.panels)) {
+                this.panels = (defaultPanelsJson as any).panels as Panel[]
+                this.loaded = true
+                this.saveToLocalStorage()
+                return
+            }
+            throw new Error('未找到可用的 panels 数据')
+        },
+
+        /** 统一持久化（仅写 localStorage） */
+        async persistAll(): Promise<void> {
             this.saveToLocalStorage()
+            // 可加日志便于排查：
+            // console.log('[persist] wrote localStorage', this.panels)
         },
 
-        /** 写入 localStorage（前端无后端的持久化） */
         saveToLocalStorage(): void {
-            localStorage.setItem(LS_KEY, JSON.stringify({ panels: this.panels }, null, 2))
+            localStorage.setItem(LS_KEY, toJson(this.panels))
         },
 
-        /** 下载当前面板配置为 panels.json（用于部署覆盖服务器） */
-        exportToJsonFile(filename = 'panels.json'): void {
-            const blob = new Blob(
-                [JSON.stringify({ panels: this.panels }, null, 2)],
-                { type: 'application/json;charset=utf-8' }
-            )
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = filename
-            a.click()
-            URL.revokeObjectURL(url)
-        },
-
-        /** CRUD —— 所有写操作都顺便保存到 localStorage */
+        // ---------- CRUD：所有写操作后统一 persist ----------
         addPanel(panel: Partial<Panel>): void {
             const id = Date.now().toString(36)
             this.panels.push({
@@ -69,23 +67,22 @@ export const usePanelStore = defineStore('panels', {
                 durationMs: panel.durationMs ?? 8000,
                 enabled: panel.enabled ?? true,
             })
-            this.saveToLocalStorage()
+            void this.persistAll()
         },
 
         removePanel(id: string): void {
             this.panels = this.panels.filter(p => p.id !== id)
-            this.saveToLocalStorage()
+            void this.persistAll()
         },
 
         updatePanel(id: string, patch: Partial<Panel>): void {
             const i = this.panels.findIndex(p => p.id === id)
             if (i !== -1) {
                 this.panels[i] = { ...this.panels[i], ...patch }
-                this.saveToLocalStorage()
+                void this.persistAll()
             }
         },
 
-        /** 交换顺序（from -> to），用于“整行拖拽换位” */
         reorder(from: number, to: number): void {
             if (from === to) return
             const list = [...this.panels]
@@ -93,7 +90,7 @@ export const usePanelStore = defineStore('panels', {
             if (m) {
                 list.splice(to, 0, m)
                 this.panels = list
-                this.saveToLocalStorage()
+                void this.persistAll()
             }
         },
     },
