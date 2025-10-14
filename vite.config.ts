@@ -7,5 +7,15 @@ export default defineConfig({
     vue({ template: { transformAssetUrls } }),
     vuetify({ autoImport: true })
   ],
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    proxy: {
+      // 把 /proxy/* 转发到目标站点
+      '/proxy': {
+        target: 'http://222.198.123.127',
+        changeOrigin: true,
+        rewrite: p => p.replace(/^\/proxy/, ''),
+      },
+    }
+    }
 })

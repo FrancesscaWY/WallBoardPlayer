@@ -2,6 +2,6 @@
   "panels": [
     { "id": "1", "title": "VR云览西大", "url": "http://222.198.126.67/", "durationMs": 5000, "enabled": true },
     { "id": "2", "title": "实时流量监测", "url": "http://222.198.122.133:10000/", "durationMs": 5000, "enabled": true },
-    { "id": "3", "title": "一卡通监控", "url": "http://222.198.123.127/login?redirect=%2Fxndx%2FschoolCardTradingNew", "durationMs": 5000, "enabled": true }
+    { "id": "3", "title": "一卡通监控", "url": "/proxy/login", "durationMs": 5000, "enabled": true }
   ]
 }
