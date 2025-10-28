@@ -52,16 +52,16 @@ export async function ocrRecognize(imgBase64: string): Promise<string> {
     return result;
 }
 
-/** ======== 测试入口 ======== */
-if (import.meta.url === `file://${process.argv[1]}`) {
-    import('fs').then(async (fs) => {
-        try {
-            const img = fs.readFileSync('./public/imgs/img.png');
-            const base64 = img.toString('base64');
-            const text = await ocrRecognize(base64);
-            console.log('✅ 识别结果：', text);
-        } catch (err: any) {
-            console.error('❌ 错误：', err.response?.data || err.message);
-        }
-    });
-}
+// /** ======== 测试入口 ======== */
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//     import('fs').then(async (fs) => {
+//         try {
+//             const img = fs.readFileSync('./public/imgs/img.png');
+//             const base64 = img.toString('base64');
+//             const text = await ocrRecognize(base64);
+//             console.log('✅ 识别结果：', text);
+//         } catch (err: any) {
+//             console.error('❌ 错误：', err.response?.data || err.message);
+//         }
+//     });
+// }

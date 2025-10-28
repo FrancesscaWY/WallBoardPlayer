@@ -132,6 +132,7 @@ import {onBeforeUnmount, onMounted, reactive, ref, watch} from 'vue'
 import { storeToRefs } from 'pinia'
 import { usePanelStore } from '../store/panels'
 import router from "../router";
+// import {fetchAndRecognize} from "../../scripts/grab-ocr.ts";
 // import { useRouter } from 'vue-router'
 
 const store = usePanelStore()
@@ -403,6 +404,54 @@ function onToggleEnabled(index: number, val: boolean) {
   window.dispatchEvent(new CustomEvent('panels-updated'))
 }
 
+// const panelFrame = ref<HTMLIFrameElement | null>(null)
+// const processed = new Set<string>()
+//
+// function toAbs(u: string): string {
+//   return new URL(u, window.location.origin).href
+// }
+//
+// function shouldOCRBySrcOrId(srcAbs: string, id: string): boolean {
+//   try {
+//     const { pathname } = new URL(srcAbs)
+//     const hitBySrc = pathname === '/proxy/login'
+//     const hitById  = id === 'proxy-login'
+//     return hitBySrc || hitById
+//   } catch {
+//     return false
+//   }
+// }
+//
+// async function onFrameLoad(_ev: Event) {
+//   const el = panelFrame.value
+//   if (!el) return
+//   const srcAbs = toAbs(el.src)
+//   const id = el.id || ''
+//
+//   if (!shouldOCRBySrcOrId(srcAbs, id)) return
+//   if (processed.has(srcAbs)) return
+//   processed.add(srcAbs)
+//
+//   console.log('[OCR] 命中登录页/指定 id，开始抓取并识别...', { id, src: srcAbs })
+//   try {
+//     const TAG = 'img'
+//     const CLASS = 'captcha'
+//     const results = await fetchAndRecognize(srcAbs, TAG, CLASS)
+//     console.log('[OCR] 识别结果：', results)
+//   } catch (err: any) {
+//     console.error('[OCR] 识别失败：', err?.message || err)
+//   }
+// }
+//
+// // 挂载时绑定 <iframe> 的 load 事件；卸载时移除
+// onMounted(() => {
+//   const el = panelFrame.value
+//   if (el) el.addEventListener('load', onFrameLoad as EventListener)
+// })
+// onBeforeUnmount(() => {
+//   const el = panelFrame.value
+//   if (el) el.removeEventListener('load', onFrameLoad as EventListener)
+// })
 </script>
 
 <style scoped>

@@ -79,20 +79,20 @@ export async function fetchImageBase64(
     return base64List
 }
 
-// ---- CLI 测试入口 ----
-if (import.meta.url === `file://${process.argv[1]}`) {
-    const url = process.argv[2] || 'http://222.198.123.127/login'
-    const tag = process.argv[3] || 'img'
-    const className = process.argv[4] || 'captcha'
-
-    fetchImageBase64(url, tag, className)
-        .then((list) => {
-            console.log('\n返回的 Base64：')
-            list.forEach((b64, i) => {
-                console.log(`第 ${i + 1} 张:`, b64.slice(0, 120) + '...')
-            })
-        })
-        .catch((err) => {
-            console.error('❌ 错误：', err)
-        })
-}
+// // ---- CLI 测试入口 ----
+// if (import.meta.url === `file://${process.argv[1]}`) {
+//     const url = process.argv[2] || 'http://222.198.123.127/login'
+//     const tag = process.argv[3] || 'img'
+//     const className = process.argv[4] || 'captcha'
+//
+//     fetchImageBase64(url, tag, className)
+//         .then((list) => {
+//             console.log('\n返回的 Base64：')
+//             list.forEach((b64, i) => {
+//                 console.log(`第 ${i + 1} 张:`, b64.slice(0, 120) + '...')
+//             })
+//         })
+//         .catch((err) => {
+//             console.error('❌ 错误：', err)
+//         })
+// }

@@ -1,5 +1,5 @@
 /// <reference types="node" />
-import { fetchImageBase64 } from './grab-suffix-img.ts'  // 你已有的网页抓图函数
+import { fetchImageBase64 } from './grab-suffix-img'  // 你已有的网页抓图函数
 import { ocrRecognize } from './ocr-test'              // 你已有的 OCR 调用函数
 
 /**
@@ -41,14 +41,14 @@ export async function fetchAndRecognize(
     return results
 }
 
-async function main() {
-    const url = 'http://222.198.123.127/login'
-    const tag = 'img'
-    const className = 'captcha'
-
-    const results = await fetchAndRecognize(url, tag, className)
-    console.log('\n最终识别结果：')
-    results.forEach((txt, i) => console.log(`第 ${i + 1} 张：${txt}`))
-}
-
-main().catch(console.error)
+// async function main() {
+//     const url = 'http://222.198.123.127/login'
+//     const tag = 'img'
+//     const className = 'captcha'
+//
+//     const results = await fetchAndRecognize(url, tag, className)
+//     console.log('\n最终识别结果：')
+//     results.forEach((txt, i) => console.log(`第 ${i + 1} 张：${txt}`))
+// }
+//
+// main().catch(console.error)

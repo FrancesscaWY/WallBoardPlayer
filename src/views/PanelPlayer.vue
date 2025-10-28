@@ -13,7 +13,8 @@
             referrerpolicy="no-referrer"
             loading="eager"
             allow="fullscreen; autoplay; clipboard-read; clipboard-write"
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-top-navigation-by-user-activation"
+            ref="frameRef"
             />
           </transition>
         </div>

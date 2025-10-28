@@ -5,7 +5,7 @@
     "lib": ["ES2023"],
     "module": "ESNext",
     "types": ["node"],
-    "include": ["src/utils/**/*.ts"],
+    "include": ["scripts/**/*.ts"],
     "skipLibCheck": true,
 
     /* Bundler mode */
